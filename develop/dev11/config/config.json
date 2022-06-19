@@ -1,0 +1,9 @@
+{
+    "Host": "127.0.0.1",
+    "Port": "8080",
+    "PgHost": "127.0.0.1",
+    "PgPort": "5432",
+    "PgUser": "setom",
+    "PgPasswd": "742395",
+    "PgBase": "wb_l2"
+}

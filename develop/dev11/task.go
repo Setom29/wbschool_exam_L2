@@ -1,5 +1,13 @@
 package main
 
+import (
+	"dev11/config"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+)
+
 /*
 === HTTP server ===
 
@@ -22,6 +30,25 @@ package main
 	4. Код должен проходить проверки go vet и golint.
 */
 
+func startServer(cfg config.Settings) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Привет, мир!")
+	})
+	http.ListenAndServe(fmt.Sprintf("%s:%s", cfg.PgHost, cfg.Port), nil)
+}
 func main() {
+	cfg := config.Configure()
+	go startServer(cfg)
+	fmt.Printf("Server started on http://%s:%s/\n", cfg.Host, cfg.Port)
+	signalChan := make(chan os.Signal, 1)
+	cleanupDone := make(chan bool)
+	signal.Notify(signalChan, os.Interrupt)
+	go func() {
+		for range signalChan {
+			fmt.Printf("\nReceived an interrupt...\n\n")
 
+			cleanupDone <- true
+		}
+	}()
+	<-cleanupDone
 }

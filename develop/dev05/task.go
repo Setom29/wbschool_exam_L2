@@ -2,9 +2,13 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
+	"sort"
+	"strings"
 )
 
 /*
@@ -26,28 +30,41 @@ import (
 */
 
 type Flags struct {
-	A int
-	B int
-	C int
-	c int
-	i int
-	v bool
-	F bool
-	n bool
+	A       int
+	B       int
+	C       int
+	c       int
+	i       bool
+	v       bool
+	F       bool
+	n       bool
+	pattern string
 }
 
-func parseFlags() *Flags {
-	A := flag.Int("A", 0, `"after" print +N lines after a match`)
-	B := flag.Int("B", 0, `"before" print +N lines to match`)
-	C := flag.Int("C", 0, `"context" (A+B) print ±N lines around the match`)
+func parseFlags() (*Flags, error) {
+	A := flag.Int("A", 0, `-A - "after" print +N lines after a match`)
+	B := flag.Int("B", 0, `-B - "before" print +N lines to match`)
+	C := flag.Int("C", 0, `-C - "context" (A+B) print ±N lines around the match`)
 	c := flag.Int("c", 0, `-c - "count" (number of rows)`)
-	i := flag.Int("i", 0, `-i - "ignore-case" (ignore case)`)
+	i := flag.Bool("i", false, `-i - "ignore-case" (ignore case)`)
 	v := flag.Bool("v", false, `-v - "invert" (instead of a match, exclude)`)
 	F := flag.Bool("F", false, `-F - "fixed", exact match with string, not pattern`)
 	n := flag.Bool("n", false, `-n - "line num", print line number`)
+
+	*i = true
+	*n = true
+
 	flag.Parse()
-	fmt.Println(os.Args)
-	return &Flags{*A, *B, *C, *c, *i, *v, *F, *n}
+
+	if len(flag.Args()) == 0 {
+		return nil, errors.New("The pattern must be specified.")
+	}
+	pattern := flag.Args()[0]
+
+	if *i {
+		pattern = strings.ToLower(pattern)
+	}
+	return &Flags{*A, *B, *C, *c, *i, *v, *F, *n, pattern}, nil
 }
 
 func readFile(filename string) ([]string, error) {
@@ -62,24 +79,109 @@ func readFile(filename string) ([]string, error) {
 	for fileScanner.Scan() {
 		strs = append(strs, fileScanner.Text())
 	}
+
 	return strs, nil
 }
 
+func patternSearch(strs []string, flags *Flags) map[int]bool {
+	indexMap := make(map[int]bool)
+	for ind, str := range strs {
+		// limiting number of indexes by -c
+		if (flags.c == len(indexMap)) && (flags.c > 0) {
+			break
+		}
+		// ignore case
+		if flags.i {
+			str = strings.ToLower(str)
+		}
+
+		if flags.F {
+			if strings.Contains(str, flags.pattern) {
+				indexMap[ind] = true
+			}
+		} else {
+			match, _ := regexp.MatchString(flags.pattern, str)
+			if flags.v && !match {
+				// exclude match
+				indexMap[ind] = true
+			} else if !flags.v && match {
+				// include match
+				indexMap[ind] = true
+			}
+		}
+	}
+	return indexMap
+}
+
+func getStrsNearMatch(strs []string, indexMap map[int]bool, flags *Flags) {
+	// count the correct number of rows
+	if flags.C > 0 {
+		if flags.A == 0 {
+			flags.A = flags.C
+		}
+		if flags.B == 0 {
+			flags.B = flags.C
+		}
+	}
+	// get indexes before and after the match
+	indexesArr := make([]int, 0)
+	var ind int
+	for key, _ := range indexMap {
+		for i := 0; i < flags.B; i++ {
+			ind = key - i - 1
+			if ind >= 0 {
+				indexesArr = append(indexesArr, ind)
+			}
+		}
+		for i := 0; i < flags.A; i++ {
+			ind = key + i + 1
+			if ind < len(strs) {
+				indexesArr = append(indexesArr, ind)
+			}
+		}
+	}
+	for _, el := range indexesArr {
+		indexMap[el] = true
+	}
+}
+
+func printStrings(strs []string, indexMap map[int]bool, flags *Flags) {
+	keys := make([]int, 0)
+	for k, _ := range indexMap {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	if flags.n {
+		for _, key := range keys {
+			fmt.Print(key, strs[key], "\n")
+		}
+	} else {
+		for _, key := range keys {
+			fmt.Print(strs[key], "\n")
+		}
+	}
+}
+
 func customGrep() error {
-	flags := parseFlags()
+	flags, err := parseFlags()
+	// fmt.Println(flags)
+	if err != nil {
+		return err
+	}
 	strs, err := readFile("test1.txt")
 	if err != nil {
 		return err
 	}
-	fmt.Println(flags)
-	fmt.Println(strs[0])
-
+	indexMap := patternSearch(strs, flags)
+	getStrsNearMatch(strs, indexMap, flags)
+	printStrings(strs, indexMap, flags)
+	fmt.Println(len(indexMap))
 	return nil
 }
 
 func main() {
 	err := customGrep()
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		fmt.Printf("Error: %s\n", err)
 	}
 }
