@@ -1,3 +1,3 @@
-module task.go
+module dev03
 
 go 1.18
