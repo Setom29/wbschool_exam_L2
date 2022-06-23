@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 /*
@@ -43,23 +45,26 @@ func isAnagram(a, b string) bool {
 	}
 	return true
 }
-func getAnagramsMap(arr []string) map[string][]string {
+func findAnagrams(arr []string) map[string][]string {
 	anagramMap := make(map[string][]string)
 	for _, el := range arr {
 		el = strings.ToLower(el)
 		if len(anagramMap) == 0 {
 			anagramMap[el] = make([]string, 0)
 		} else {
-			var counter int
-			for key, _ := range anagramMap {
+			counter := 1
+			for key := range anagramMap {
 				isAn := isAnagram(key, el)
 				if isAn {
-					anagramMap[key] = append(anagramMap[key], el)
-					break
-				} else if (!isAn) && (counter == len(anagramMap)-1) {
+					if !slices.Contains(anagramMap[key], el) && key != el {
+						anagramMap[key] = append(anagramMap[key], el)
+						break
+					}
+				} else if (!isAn) && (counter == len(anagramMap)) {
 					anagramMap[el] = make([]string, 0)
 					break
 				}
+				counter++
 			}
 		}
 	}
@@ -78,5 +83,5 @@ func getAnagramsMap(arr []string) map[string][]string {
 
 func main() {
 	arr := []string{"пятак", "пятка", "листок", "тяпка", "столик", "слиток"}
-	fmt.Println(getAnagramsMap(arr))
+	fmt.Println(findAnagrams(arr))
 }
