@@ -29,7 +29,7 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
-type Flags struct {
+type flags struct {
 	A       int
 	B       int
 	C       int
@@ -41,7 +41,7 @@ type Flags struct {
 	pattern string
 }
 
-func parseFlags() (*Flags, error) {
+func parseFlags() (*flags, error) {
 	A := flag.Int("A", 0, `-A - "after" print +N lines after a match`)
 	B := flag.Int("B", 0, `-B - "before" print +N lines to match`)
 	C := flag.Int("C", 0, `-C - "context" (A+B) print ±N lines around the match`)
@@ -57,14 +57,14 @@ func parseFlags() (*Flags, error) {
 	flag.Parse()
 
 	if len(flag.Args()) == 0 {
-		return nil, errors.New("The pattern must be specified.")
+		return nil, errors.New("the pattern must be specified")
 	}
 	pattern := flag.Args()[0]
 
 	if *i {
 		pattern = strings.ToLower(pattern)
 	}
-	return &Flags{*A, *B, *C, *c, *i, *v, *F, *n, pattern}, nil
+	return &flags{*A, *B, *C, *c, *i, *v, *F, *n, pattern}, nil
 }
 
 func readFile(filename string) ([]string, error) {
@@ -83,28 +83,28 @@ func readFile(filename string) ([]string, error) {
 	return strs, nil
 }
 
-func patternSearch(strs []string, flags *Flags) map[int]bool {
+func patternSearch(strs []string, f *flags) map[int]bool {
 	indexMap := make(map[int]bool)
 	for ind, str := range strs {
 		// limiting number of indexes by -c
-		if (flags.c == len(indexMap)) && (flags.c > 0) {
+		if (f.c == len(indexMap)) && (f.c > 0) {
 			break
 		}
 		// ignore case
-		if flags.i {
+		if f.i {
 			str = strings.ToLower(str)
 		}
-
-		if flags.F {
-			if strings.Contains(str, flags.pattern) {
+		if f.F {
+			if strings.Contains(str, f.pattern) {
 				indexMap[ind] = true
 			}
 		} else {
-			match, _ := regexp.MatchString(flags.pattern, str)
-			if flags.v && !match {
+			//use regexp
+			match, _ := regexp.MatchString(f.pattern, str)
+			if f.v && !match {
 				// exclude match
 				indexMap[ind] = true
-			} else if !flags.v && match {
+			} else if !f.v && match {
 				// include match
 				indexMap[ind] = true
 			}
@@ -113,27 +113,27 @@ func patternSearch(strs []string, flags *Flags) map[int]bool {
 	return indexMap
 }
 
-func getStrsNearMatch(strs []string, indexMap map[int]bool, flags *Flags) {
+func getStrsNearMatch(strs []string, indexMap map[int]bool, f *flags) {
 	// count the correct number of rows
-	if flags.C > 0 {
-		if flags.A == 0 {
-			flags.A = flags.C
+	if f.C > 0 {
+		if f.A == 0 {
+			f.A = f.C
 		}
-		if flags.B == 0 {
-			flags.B = flags.C
+		if f.B == 0 {
+			f.B = f.C
 		}
 	}
 	// get indexes before and after the match
 	indexesArr := make([]int, 0)
 	var ind int
-	for key, _ := range indexMap {
-		for i := 0; i < flags.B; i++ {
+	for key := range indexMap {
+		for i := 0; i < f.B; i++ {
 			ind = key - i - 1
 			if ind >= 0 {
 				indexesArr = append(indexesArr, ind)
 			}
 		}
-		for i := 0; i < flags.A; i++ {
+		for i := 0; i < f.A; i++ {
 			ind = key + i + 1
 			if ind < len(strs) {
 				indexesArr = append(indexesArr, ind)
@@ -145,13 +145,13 @@ func getStrsNearMatch(strs []string, indexMap map[int]bool, flags *Flags) {
 	}
 }
 
-func printStrings(strs []string, indexMap map[int]bool, flags *Flags) {
+func printStrings(strs []string, indexMap map[int]bool, f *flags) {
 	keys := make([]int, 0)
-	for k, _ := range indexMap {
+	for k := range indexMap {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
-	if flags.n {
+	if f.n {
 		for _, key := range keys {
 			fmt.Print(key, strs[key], "\n")
 		}
@@ -163,7 +163,7 @@ func printStrings(strs []string, indexMap map[int]bool, flags *Flags) {
 }
 
 func customGrep() error {
-	flags, err := parseFlags()
+	f, err := parseFlags()
 	// fmt.Println(flags)
 	if err != nil {
 		return err
@@ -172,9 +172,9 @@ func customGrep() error {
 	if err != nil {
 		return err
 	}
-	indexMap := patternSearch(strs, flags)
-	getStrsNearMatch(strs, indexMap, flags)
-	printStrings(strs, indexMap, flags)
+	indexMap := patternSearch(strs, f)
+	getStrsNearMatch(strs, indexMap, f)
+	printStrings(strs, indexMap, f)
 	fmt.Println(len(indexMap))
 	return nil
 }
