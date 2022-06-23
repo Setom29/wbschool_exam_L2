@@ -40,7 +40,6 @@ func newCut() (*Cut, error) {
 	text = flag.Args()[0]
 	fmt.Println(*fields, *d, *s)
 	return &Cut{f: strings.Split(*fields, ","), d: *d, s: *s, text: text}, nil
-	// return &Cut{f:[]string{"1", "2"}, d: " ", s: false, text: "apple carrot raspberry"}, nil
 }
 
 func (c *Cut) customCut() error {
