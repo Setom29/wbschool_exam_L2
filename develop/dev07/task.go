@@ -73,12 +73,12 @@ func main() {
 	<-or(
 		sig(2*time.Hour),
 		sig(5*time.Minute),
-		sig(1*time.Second),
+		sig(3*time.Second),
 		sig(5*time.Second),
 		sig(1*time.Hour),
-		sig(700*time.Millisecond),
+		sig(20*time.Second),
 		sig(1*time.Minute),
 	)
 
-	fmt.Printf("Time since start %v", time.Since(start))
+	fmt.Printf("Time since start: %v\n", time.Since(start))
 }
