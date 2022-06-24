@@ -6,6 +6,8 @@ package pattern
 	https://en.wikipedia.org/wiki/Visitor_pattern
 */
 
+// https://golangbyexample.com/visitor-design-pattern-go/
+
 import "fmt"
 
 type shape interface {

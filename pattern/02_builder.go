@@ -1,89 +1,140 @@
 package pattern
 
+import "fmt"
+
 /*
 	Реализовать паттерн «строитель».
 Объяснить применимость паттерна, его плюсы и минусы, а также реальные примеры использования данного примера на практике.
 	https://en.wikipedia.org/wiki/Builder_pattern
 */
 
-/*
-	The builder pattern is a design pattern designed to provide a flexible solution to various object creation problems in object-oriented programming.
-	The intent of the Builder design pattern is to separate the construction of a complex object from its representation.
-	It is one of the Gang of Four design patterns.
+// https://golangbyexample.com/builder-pattern-golang/
 
-	The Builder design pattern solves problems like:
-
-		How can a class (the same construction process) create different representations of a complex object?
-		How can a class that includes creating a complex object be simplified?
-		Creating and assembling the parts of a complex object directly within a class is inflexible. It commits the class to creating a particular representation of the complex object and makes it impossible to change the representation later independently from (without having to change) the class.
-
-	The Builder design pattern describes how to solve such problems:
-
-		Encapsulate creating and assembling the parts of a complex object in a separate Builder object.
-		A class delegates object creation to a Builder object instead of creating the objects directly.
-		A class (the same construction process) can delegate to different Builder objects to create different representations of a complex object.
-
-	Definition
-	The intent of the Builder design pattern is to separate the construction of a complex object from its representation. By doing so, the same construction process can create different representations.[1]
-
-	Advantages of the Builder pattern include:
-
-		Allows you to vary a product's internal representation.
-		Encapsulates code for construction and representation.
-		Provides control over steps of construction process.
-
-	Disadvantages of the Builder pattern include:
-
-		A distinct ConcreteBuilder must be created for each type of product.
-		Builder classes must be mutable.
-		May hamper/complicate dependency injection.
-*/
-
-// Builder provides a builder interface.
-type Builder interface {
-	MakeHeader(str string)
-	MakeBody(str string)
-	MakeFooter(str string)
+//iBuilder
+type iBuilder interface {
+	setWindowType()
+	setDoorType()
+	setNumFloor()
+	getHouse() house
 }
 
-// Director implements a manager
-type Director struct {
-	builder Builder
+func getBuilder(builderType string) iBuilder {
+	if builderType == "normal" {
+		return &normalBuilder{}
+	}
+	if builderType == "igloo" {
+		return &iglooBuilder{}
+	}
+	return nil
 }
 
-// Construct tells the builder what to do and in what order.
-func (d *Director) Construct() {
-	d.builder.MakeHeader("Header")
-	d.builder.MakeBody("Body")
-	d.builder.MakeFooter("Footer")
+// normalBuilder
+type normalBuilder struct {
+	windowType string
+	doorType   string
+	floor      int
 }
 
-// ConcreteBuilder implements Builder interface.
-type ConcreteBuilder struct {
-	product *Product
+func newNormalBuilder() *normalBuilder {
+	return &normalBuilder{}
 }
 
-// MakeHeader builds a header of document..
-func (b *ConcreteBuilder) MakeHeader(str string) {
-	b.product.Content += "<header>" + str + "</header>"
+func (b *normalBuilder) setWindowType() {
+	b.windowType = "Wooden Window"
 }
 
-// MakeBody builds a body of document.
-func (b *ConcreteBuilder) MakeBody(str string) {
-	b.product.Content += "<article>" + str + "</article>"
+func (b *normalBuilder) setDoorType() {
+	b.doorType = "Wooden Door"
 }
 
-// MakeFooter builds a footer of document.
-func (b *ConcreteBuilder) MakeFooter(str string) {
-	b.product.Content += "<footer>" + str + "</footer>"
+func (b *normalBuilder) setNumFloor() {
+	b.floor = 2
 }
 
-// Product implementation.
-type Product struct {
-	Content string
+func (b *normalBuilder) getHouse() house {
+	return house{
+		doorType:   b.doorType,
+		windowType: b.windowType,
+		floor:      b.floor,
+	}
 }
 
-// Show returns product.
-func (p *Product) Show() string {
-	return p.Content
+//iglooBuilder
+type iglooBuilder struct {
+	windowType string
+	doorType   string
+	floor      int
+}
+
+func newIglooBuilder() *iglooBuilder {
+	return &iglooBuilder{}
+}
+
+func (b *iglooBuilder) setWindowType() {
+	b.windowType = "Snow Window"
+}
+
+func (b *iglooBuilder) setDoorType() {
+	b.doorType = "Snow Door"
+}
+
+func (b *iglooBuilder) setNumFloor() {
+	b.floor = 1
+}
+
+func (b *iglooBuilder) getHouse() house {
+	return house{
+		doorType:   b.doorType,
+		windowType: b.windowType,
+		floor:      b.floor,
+	}
+}
+
+// house
+type house struct {
+	windowType string
+	doorType   string
+	floor      int
+}
+
+// director
+type director struct {
+	builder iBuilder
+}
+
+func newDirector(b iBuilder) *director {
+	return &director{
+		builder: b,
+	}
+}
+
+func (d *director) setBuilder(b iBuilder) {
+	d.builder = b
+}
+
+func (d *director) buildHouse() house {
+	d.builder.setDoorType()
+	d.builder.setWindowType()
+	d.builder.setNumFloor()
+	return d.builder.getHouse()
+}
+
+// main
+func main() {
+	normalBuilder := getBuilder("normal")
+	iglooBuilder := getBuilder("igloo")
+
+	director := newDirector(normalBuilder)
+	normalHouse := director.buildHouse()
+
+	fmt.Printf("Normal House Door Type: %s\n", normalHouse.doorType)
+	fmt.Printf("Normal House Window Type: %s\n", normalHouse.windowType)
+	fmt.Printf("Normal House Num Floor: %d\n", normalHouse.floor)
+
+	director.setBuilder(iglooBuilder)
+	iglooHouse := director.buildHouse()
+
+	fmt.Printf("\nIgloo House Door Type: %s\n", iglooHouse.doorType)
+	fmt.Printf("Igloo House Window Type: %s\n", iglooHouse.windowType)
+	fmt.Printf("Igloo House Num Floor: %d\n", iglooHouse.floor)
 }

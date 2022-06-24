@@ -1,4 +1,4 @@
-package pattern
+package main
 
 /*
 	Реализовать паттерн «стратегия».
@@ -6,12 +6,16 @@ package pattern
 	https://en.wikipedia.org/wiki/Strategy_pattern
 */
 
+// https://golangbyexample.com/strategy-design-pattern-golang/
+
 import "fmt"
 
+// evictionAlgo
 type evictionAlgo interface {
 	evict(c *cache)
 }
 
+// fifo
 type fifo struct {
 }
 
@@ -19,6 +23,7 @@ func (l *fifo) evict(c *cache) {
 	fmt.Println("Evicting by fifo strtegy")
 }
 
+// lru
 type lru struct {
 }
 
@@ -26,6 +31,7 @@ func (l *lru) evict(c *cache) {
 	fmt.Println("Evicting by lru strtegy")
 }
 
+// lfu
 type lfu struct {
 }
 
@@ -33,6 +39,7 @@ func (l *lfu) evict(c *cache) {
 	fmt.Println("Evicting by lfu strtegy")
 }
 
+// cache
 type cache struct {
 	storage      map[string]string
 	evictionAlgo evictionAlgo
@@ -71,6 +78,7 @@ func (c *cache) evict() {
 	c.capacity--
 }
 
+// main
 func main() {
 	lfu := &lfu{}
 	cache := initCache(lfu)

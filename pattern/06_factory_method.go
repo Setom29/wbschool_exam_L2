@@ -1,4 +1,4 @@
-package pattern
+package main
 
 /*
 	Реализовать паттерн «фабричный метод».
@@ -6,8 +6,11 @@ package pattern
 	https://en.wikipedia.org/wiki/Factory_method_pattern
 */
 
+// https://golangbyexample.com/golang-factory-design-pattern/
+
 import "fmt"
 
+// iGun
 type iGun interface {
 	setName(name string)
 	setPower(power int)
@@ -15,6 +18,7 @@ type iGun interface {
 	getPower() int
 }
 
+// gun
 type gun struct {
 	name  string
 	power int
@@ -36,6 +40,7 @@ func (g *gun) getPower() int {
 	return g.power
 }
 
+// ak47
 type ak47 struct {
 	gun
 }
@@ -49,6 +54,7 @@ func newAk47() iGun {
 	}
 }
 
+// maverick
 type maverick struct {
 	gun
 }
@@ -62,6 +68,7 @@ func newMaverick() iGun {
 	}
 }
 
+// gunFactory
 func getGun(gunType string) (iGun, error) {
 	if gunType == "ak47" {
 		return newAk47(), nil
@@ -72,6 +79,7 @@ func getGun(gunType string) (iGun, error) {
 	return nil, fmt.Errorf("Wrong gun type passed")
 }
 
+// main
 func main() {
 	ak47, _ := getGun("ak47")
 	maverick, _ := getGun("maverick")

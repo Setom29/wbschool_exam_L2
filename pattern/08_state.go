@@ -1,4 +1,4 @@
-// package pattern
+package pattern
 
 /*
 	Реализовать паттерн «состояние».
@@ -6,13 +6,14 @@
 	https://en.wikipedia.org/wiki/State_pattern
 */
 
-package main
+// https://golangbyexample.com/state-design-pattern-go/
 
 import (
 	"fmt"
 	"log"
 )
 
+// vendingMachine
 type vendingMachine struct {
 	hasItem       state
 	itemRequested state
@@ -76,6 +77,7 @@ func (v *vendingMachine) incrementItemCount(count int) {
 	v.itemCount = v.itemCount + count
 }
 
+// state
 type state interface {
 	addItem(int) error
 	requestItem() error
@@ -83,6 +85,7 @@ type state interface {
 	dispenseItem() error
 }
 
+// noItemState
 type noItemState struct {
 	vendingMachine *vendingMachine
 }
@@ -104,6 +107,7 @@ func (i *noItemState) dispenseItem() error {
 	return fmt.Errorf("Item out of stock")
 }
 
+// hasItemState
 type hasItemState struct {
 	vendingMachine *vendingMachine
 }
@@ -131,6 +135,7 @@ func (i *hasItemState) dispenseItem() error {
 	return fmt.Errorf("Please select item first")
 }
 
+// itemRequestedState
 type itemRequestedState struct {
 	vendingMachine *vendingMachine
 }
@@ -155,6 +160,7 @@ func (i *itemRequestedState) dispenseItem() error {
 	return fmt.Errorf("Please insert money first")
 }
 
+// hasMoneyState
 type hasMoneyState struct {
 	vendingMachine *vendingMachine
 }
@@ -181,6 +187,7 @@ func (i *hasMoneyState) dispenseItem() error {
 	return nil
 }
 
+// main
 func main() {
 	vendingMachine := newVendingMachine(1, 10)
 

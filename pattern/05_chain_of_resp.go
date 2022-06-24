@@ -6,13 +6,17 @@ package pattern
 	https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern
 */
 
+// https://golangbyexample.com/chain-of-responsibility-design-pattern-in-golang/
+
 import "fmt"
 
+// department
 type department interface {
 	execute(*patient)
 	setNext(department)
 }
 
+// reception
 type reception struct {
 	next department
 }
@@ -32,6 +36,7 @@ func (r *reception) setNext(next department) {
 	r.next = next
 }
 
+// doctor
 type doctor struct {
 	next department
 }
@@ -51,6 +56,7 @@ func (d *doctor) setNext(next department) {
 	d.next = next
 }
 
+// medical
 type medical struct {
 	next department
 }
@@ -70,6 +76,7 @@ func (m *medical) setNext(next department) {
 	m.next = next
 }
 
+// cachier
 type cashier struct {
 	next department
 }
@@ -85,6 +92,7 @@ func (c *cashier) setNext(next department) {
 	c.next = next
 }
 
+// patient
 type patient struct {
 	name              string
 	registrationDone  bool
@@ -93,6 +101,7 @@ type patient struct {
 	paymentDone       bool
 }
 
+// main
 func main() {
 	cashier := &cashier{}
 

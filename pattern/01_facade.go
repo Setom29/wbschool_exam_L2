@@ -1,6 +1,9 @@
 package pattern
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 /*
 	Реализовать паттерн «фасад».
@@ -8,85 +11,155 @@ import "fmt"
 	https://en.wikipedia.org/wiki/Facade_pattern
 */
 
-/*
-	The facade pattern (also spelled façade) is a software-design pattern commonly used in object-oriented programming.
-	Analogous to a facade in architecture, a facade is an object that serves as a front-facing interface masking more complex underlying or structural code.
-	A facade can:
+// https://golangbyexample.com/facade-design-pattern-in-golang/
 
-		improve the readability and usability of a software library by masking interaction with more complex components behind a single (and often simplified) API
-		provide a context-specific interface to more generic functionality (complete with context-specific input validation)
-		serve as a launching point for a broader refactor of monolithic or tightly-coupled systems in favor of more loosely-coupled code
-
-
-	Developers often use the facade design pattern when a system is very complex or difficult to understand
-	because the system has many interdependent classes or because its source code is unavailable.
-	This pattern hides the complexities of the larger system and provides a simpler interface to the client.
-	It typically involves a single wrapper class that contains a set of members required by the client.
-	These members access the system on behalf of the facade client and hide the implementation details.
-
-*/
-type Order struct {
-	id      string
-	data    string
-	adm     *Administration
-	kitchen *Kitchen
-	courier *Courier
+type walletFacade struct {
+	account      *account
+	wallet       *wallet
+	securityCode *securityCode
+	notification *notification
+	ledger       *ledger
 }
 
-type Administration struct {
+func newWalletFacade(accountID string, code int) *walletFacade {
+	fmt.Println("Starting create account")
+	walletFacacde := &walletFacade{
+		account:      newAccount(accountID),
+		securityCode: newSecurityCode(code),
+		wallet:       newWallet(),
+		notification: &notification{},
+		ledger:       &ledger{},
+	}
+	fmt.Println("Account created")
+	return walletFacacde
+}
+
+func (w *walletFacade) addMoneyToWallet(accountID string, securityCode int, amount int) error {
+	fmt.Println("Starting add money to wallet")
+	err := w.account.checkAccount(accountID)
+	if err != nil {
+		return err
+	}
+	err = w.securityCode.checkCode(securityCode)
+	if err != nil {
+		return err
+	}
+	w.wallet.creditBalance(amount)
+	w.notification.sendWalletCreditNotification()
+	w.ledger.makeEntry(accountID, "credit", amount)
+	return nil
+}
+
+func (w *walletFacade) deductMoneyFromWallet(accountID string, securityCode int, amount int) error {
+	fmt.Println("Starting debit money from wallet")
+	err := w.account.checkAccount(accountID)
+	if err != nil {
+		return err
+	}
+	err = w.securityCode.checkCode(securityCode)
+	if err != nil {
+		return err
+	}
+	err = w.wallet.debitBalance(amount)
+	if err != nil {
+		return err
+	}
+	w.notification.sendWalletDebitNotification()
+	w.ledger.makeEntry(accountID, "credit", amount)
+	return nil
+}
+
+type account struct {
 	name string
-	id   string
 }
 
-func newAdministration(name, id string) *Administration {
-	return &Administration{name, id}
+func newAccount(accountName string) *account {
+	return &account{
+		name: accountName,
+	}
 }
 
-func (a *Administration) recieveOrder(id, data string) *Order {
-	fmt.Printf("Order %s accepted.\nOrder details: %s\n\n", id, data)
-	return &Order{id: id, data: data}
+func (a *account) checkAccount(accountName string) error {
+	if a.name != accountName {
+		return fmt.Errorf("Account Name is incorrect")
+	}
+	fmt.Println("Account Verified")
+	return nil
 }
 
-type Courier struct {
-	name string
-	id   string
+type securityCode struct {
+	code int
 }
 
-func newCourier(name, id string) *Courier {
-	return &Courier{name, id}
+func newSecurityCode(code int) *securityCode {
+	return &securityCode{
+		code: code,
+	}
 }
 
-func (c *Courier) deliverOrder(id string) {
-	fmt.Printf("Order %s delivered\n", id)
+func (s *securityCode) checkCode(incomingCode int) error {
+	if s.code != incomingCode {
+		return fmt.Errorf("Security Code is incorrect")
+	}
+	fmt.Println("SecurityCode Verified")
+	return nil
 }
 
-type Kitchen struct {
-	name string
-	id   string
+type wallet struct {
+	balance int
 }
 
-func newKitchen(name, id string) *Kitchen {
-	return &Kitchen{name, id}
+func newWallet() *wallet {
+	return &wallet{
+		balance: 0,
+	}
 }
 
-func (k *Kitchen) makePizza(id string) {
-	fmt.Printf("The order %s is ready.\n\n", id)
+func (w *wallet) creditBalance(amount int) {
+	w.balance += amount
+	fmt.Println("Wallet balance added successfully")
+	return
 }
 
-func newOrder() {
-
+func (w *wallet) debitBalance(amount int) error {
+	if w.balance < amount {
+		return fmt.Errorf("Balance is not sufficient")
+	}
+	fmt.Println("Wallet balance is Sufficient")
+	w.balance = w.balance - amount
+	return nil
 }
 
-func makeOrder(id, data string) {
-
-	adm := newAdministration("adm", "adm1")
-	kitchen := newKitchen("kitchen", "kitchen1")
-	courier := newCourier("courier", "courier1")
-	adm.recieveOrder(id, data)
-	kitchen.makePizza(id)
-	courier.deliverOrder(id)
+type ledger struct {
 }
 
-// func main() {
-// 	makeOrder("1", "Neapolitan pizza")
-// }
+func (s *ledger) makeEntry(accountID, txnType string, amount int) {
+	fmt.Printf("Make ledger entry for accountId %s with txnType %s for amount %d\n", accountID, txnType, amount)
+	return
+}
+
+type notification struct {
+}
+
+func (n *notification) sendWalletCreditNotification() {
+	fmt.Println("Sending wallet credit notification")
+}
+
+func (n *notification) sendWalletDebitNotification() {
+	fmt.Println("Sending wallet debit notification")
+}
+
+func main() {
+	fmt.Println()
+	walletFacade := newWalletFacade("abc", 1234)
+	fmt.Println()
+	err := walletFacade.addMoneyToWallet("abc", 1234, 10)
+	if err != nil {
+		log.Fatalf("Error: %s\n", err.Error())
+	}
+	fmt.Println()
+	err = walletFacade.deductMoneyFromWallet("abc", 1234, 5)
+	if err != nil {
+		log.Fatalf("Error: %s\n", err.Error())
+	}
+}
