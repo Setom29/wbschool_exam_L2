@@ -37,7 +37,8 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
-func sortWithRegister(s []string) []string {
+// sortInLowerCase - сортировка без учета регистра
+func sortInLowerCase(s []string) []string {
 	sort.SliceStable(s, func(i, j int) bool {
 		return strings.ToLower(sl[i]) < strings.ToLower(sl[j])
 	})
@@ -45,6 +46,7 @@ func sortWithRegister(s []string) []string {
 	return s
 }
 
+// index - проверка на дубли
 func index(s string, w []string) int {
 	for i, v := range w {
 		if s == v {
@@ -53,17 +55,6 @@ func index(s string, w []string) int {
 	}
 
 	return -1
-}
-
-// readScan - возвращает слайс со строками из файла
-func readScan(scan *bufio.Scanner) []string {
-	s := make([]string, 0)
-
-	for scan.Scan() {
-		s = append(s, scan.Text())
-	}
-
-	return s
 }
 
 // sortUnique - сортирует и удаляет дубли
@@ -78,7 +69,7 @@ func sortUnique(sl []string) []string {
 	}
 
 	// возвращаем уже отсортированный слайс
-	return sortWithRegister(set)
+	return sortInLowerCase(set)
 }
 
 // sortReverse - сортирует в обратном порядке
@@ -88,7 +79,6 @@ func sortReverse(sl []string) []string {
 		sl[i], sl[j] = sl[j], sl[i]
 	}
 
-	// возвращаем уже отсортированный слайс
 	return sl
 }
 
@@ -132,18 +122,17 @@ func sortColumn(lines []string, k int, n bool) []string {
 
 	var str string
 	sl = make([]string, 0)
-	// строка файла которая была разделена пробелом, джониться обратно пробелом
+	// объединяем обратно строки
 	for _, line := range s {
 		str = strings.Join(line, " ")
 		sl = append(sl, str)
 	}
 
-	// возвращаем уже отсортированный слайс
 	return sl
 }
 
-func unixSort(sl []string, flags *flagSort) []byte {
-	sl = sortWithRegister(sl)
+func customSort(sl []string, flags *flagSort) []byte {
+	sl = sortInLowerCase(sl)
 
 	// сортировка с удалением дублей
 	if flags.unique {
@@ -163,10 +152,6 @@ func unixSort(sl []string, flags *flagSort) []byte {
 	return []byte(strings.Join(sl, "\n"))
 }
 
-const (
-	defaultColumnVal = -1
-)
-
 var fscan *bufio.Scanner
 var fileName string
 var column int
@@ -180,6 +165,17 @@ type flagSort struct {
 	reverse bool
 	unique  bool
 	byName  bool
+}
+
+// readScan - возвращает слайс со строками из файла
+func readScan(scan *bufio.Scanner) []string {
+	s := make([]string, 0)
+
+	for scan.Scan() {
+		s = append(s, scan.Text())
+	}
+
+	return s
 }
 
 func main() {
@@ -201,7 +197,7 @@ func main() {
 	fscan = bufio.NewScanner(f)
 	sl = readScan(fscan)
 
-	err = ioutil.WriteFile(f.Name(), unixSort(sl, fl), fs.ModePerm)
+	err = ioutil.WriteFile(f.Name(), customSort(sl, fl), fs.ModePerm)
 	if err != nil {
 		fmt.Println(err)
 	}

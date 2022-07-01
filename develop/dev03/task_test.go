@@ -64,7 +64,7 @@ func TestUnixSort(t *testing.T) {
 		fscan = bufio.NewScanner(f)
 		sl = readScan(fscan)
 
-		sl = strings.Split(string(unixSort(sl, fl)), "\n")
+		sl = strings.Split(string(customSort(sl, fl)), "\n")
 
 		for i, v := range input.res {
 			if sl[i] != v {
