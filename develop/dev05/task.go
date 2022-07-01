@@ -164,7 +164,6 @@ func printStrings(strs []string, indexMap map[int]bool, f *flags) {
 
 func customGrep() error {
 	f, err := parseFlags()
-	// fmt.Println(flags)
 	if err != nil {
 		return err
 	}
@@ -172,10 +171,12 @@ func customGrep() error {
 	if err != nil {
 		return err
 	}
+	// get map of indexes
 	indexMap := patternSearch(strs, f)
+	// add indexes near the match string
 	getStrsNearMatch(strs, indexMap, f)
+	// print strings with or without the numbers
 	printStrings(strs, indexMap, f)
-	fmt.Println(len(indexMap))
 	return nil
 }
 
