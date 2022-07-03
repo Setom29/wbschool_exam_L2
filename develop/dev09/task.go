@@ -15,17 +15,19 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
-func savePage(url string) error {
+func savePage(url string, filename string) error {
+	// vreate response
 	resp, err := http.Get(url)
-	if err != nil {
-		// handle error
-	}
-	defer resp.Body.Close()
-	file, err := os.Create("index.html")
 	if err != nil {
 		return err
 	}
-
+	defer resp.Body.Close()
+	// create file
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	// save response body to the file
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
 		return err
@@ -38,7 +40,7 @@ func main() {
 	// if len(flag.Args()) == 0 {
 	// 	fmt.Println("url not given")
 	// }
-	if err := savePage("https://losst.ru/komanda-wget-linux"); err != nil {
+	if err := savePage("https://losst.ru/komanda-wget-linux", "index.html"); err != nil {
 		fmt.Println(err)
 	}
 }
