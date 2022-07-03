@@ -37,12 +37,14 @@ type TelnetClient struct {
 }
 
 func newTelenetClient() (*TelnetClient, error) {
+	// parse timeout
 	timeout := flag.String("timeout", "10s", "Timeout to connect to the server.")
 	flag.Parse()
 	if match, _ := regexp.MatchString(`^[0-9]+s$`, *timeout); !match {
 		return nil, errors.New(fmt.Sprintf("Invalid timeout value: %s", *timeout))
 	}
 	t, _ := time.ParseDuration(*timeout)
+	// get host & port
 	if len(flag.Args()) != 2 {
 		return nil, errors.New("Wrong args amount.")
 	}
@@ -53,8 +55,9 @@ func readFromSocket(conn net.Conn, errChan chan error) {
 	input := make([]byte, 1024)
 	for {
 		n, err := conn.Read(input)
+		// if server stopped
 		if err != nil {
-			errChan <- fmt.Errorf("remoute server stopped: %v", err)
+			errChan <- fmt.Errorf("remote server stopped: %v", err)
 			return
 		}
 		fmt.Println(string(input[:n]))
