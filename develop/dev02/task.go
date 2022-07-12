@@ -74,7 +74,7 @@ func Unpack(s string) (string, error) {
 }
 
 func main() {
-	s := `qwe\4\5`
+	s := `a4bc2d5e`
 	ans, err := Unpack(s)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -82,58 +82,3 @@ func main() {
 		fmt.Println(ans)
 	}
 }
-
-/*
-func appendLetters(r []rune, l rune, digit []rune) []rune {
-	num, err := strconv.Atoi(string(digit))
-	if err != nil {
-		num = 1
-	}
-	for i := 0; i < num; i++ {
-		r = append(r, l)
-	}
-
-	return r
-}
-
-func getFullString(s string) (string, error) {
-	r := []rune(s)
-	// case: empty string
-	if len(r) == 0 {
-		return "", nil
-	}
-
-	arr := []rune{}
-	digit := []rune{}
-	letter := r[0]
-	var err error
-
-	// case: digit on the zero position
-	if unicode.IsDigit(r[0]) {
-		err = errors.New("Invalid string")
-		return "", err
-	}
-
-	for i := 0; i < len(r); i++ {
-		switch {
-		case r[i] == rune('/'):
-			arr = append(arr, rune('/'))
-		case unicode.IsDigit(r[i]):
-			digit = append(digit, r[i])
-		default:
-			letter = r[i]
-		}
-		if i == len(r)-1 {
-			if letter == rune(-1) {
-				arr = appendLetters(arr, r[i], digit)
-			} else {
-				arr = appendLetters(arr, letter, digit)
-			}
-
-		} else if unicode.IsLetter(r[i+1]) {
-			arr = appendLetters(arr, letter, digit)
-			digit = []rune{}
-		}
-	}
-	return string(arr), nil
-}*/
