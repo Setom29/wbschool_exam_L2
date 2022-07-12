@@ -1,4 +1,4 @@
-package main
+package pattern
 
 /*
 	Реализовать паттерн «фабричный метод».
@@ -80,16 +80,16 @@ func getGun(gunType string) (iGun, error) {
 }
 
 // main
-func main() {
-	ak47, _ := getGun("ak47")
-	maverick, _ := getGun("maverick")
-	printDetails(ak47)
-	printDetails(maverick)
-}
+// func main() {
+// 	ak47, _ := getGun("ak47")
+// 	maverick, _ := getGun("maverick")
+// 	printDetails(ak47)
+// 	printDetails(maverick)
+// }
 
-func printDetails(g iGun) {
-	fmt.Printf("Gun: %s", g.getName())
-	fmt.Println()
-	fmt.Printf("Power: %d", g.getPower())
-	fmt.Println()
-}
+// func printDetails(g iGun) {
+// 	fmt.Printf("Gun: %s", g.getName())
+// 	fmt.Println()
+// 	fmt.Printf("Power: %d", g.getPower())
+// 	fmt.Println()
+// }
