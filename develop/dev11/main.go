@@ -58,7 +58,6 @@ func main() {
 	muxWithLogger := api.Logging(mux)
 
 	// ip:port
-	fmt.Println(cfg.Host, cfg.Port)
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 
 	log.Printf("Server is listening on: %s\n", addr)
