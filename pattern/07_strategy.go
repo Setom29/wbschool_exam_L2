@@ -10,92 +10,38 @@ package pattern
 
 import "fmt"
 
-// evictionAlgo
-type evictionAlgo interface {
-	evict(c *cache)
+type Operator interface {
+	Apply(int, int) int
 }
 
-// fifo
-type fifo struct {
+type Operation struct {
+	Operator Operator
 }
 
-func (l *fifo) evict(c *cache) {
-	fmt.Println("Evicting by fifo strtegy")
+func (o *Operation) Operate(leftValue, rightValue int) int {
+	return o.Operator.Apply(leftValue, rightValue)
 }
 
-// lru
-type lru struct {
+// addition
+
+type Addition struct{}
+
+func (Addition) Apply(lval, rval int) int {
+	return lval + rval
 }
 
-func (l *lru) evict(c *cache) {
-	fmt.Println("Evicting by lru strtegy")
+// multiplication
+
+type Multiplication struct{}
+
+func (Multiplication) Apply(lval, rval int) int {
+	return lval * rval
 }
 
-// lfu
-type lfu struct {
+func main() {
+	add := Operation{Addition{}}
+	fmt.Println(add.Operate(3, 5)) // 8
+
+	mult := Operation{Multiplication{}}
+	fmt.Println(mult.Operate(3, 5))
 }
-
-func (l *lfu) evict(c *cache) {
-	fmt.Println("Evicting by lfu strtegy")
-}
-
-// cache
-type cache struct {
-	storage      map[string]string
-	evictionAlgo evictionAlgo
-	capacity     int
-	maxCapacity  int
-}
-
-func initCache(e evictionAlgo) *cache {
-	storage := make(map[string]string)
-	return &cache{
-		storage:      storage,
-		evictionAlgo: e,
-		capacity:     0,
-		maxCapacity:  2,
-	}
-}
-
-func (c *cache) setEvictionAlgo(e evictionAlgo) {
-	c.evictionAlgo = e
-}
-
-func (c *cache) add(key, value string) {
-	if c.capacity == c.maxCapacity {
-		c.evict()
-	}
-	c.capacity++
-	c.storage[key] = value
-}
-
-func (c *cache) get(key string) {
-	delete(c.storage, key)
-}
-
-func (c *cache) evict() {
-	c.evictionAlgo.evict(c)
-	c.capacity--
-}
-
-// main
-// func main() {
-// 	lfu := &lfu{}
-// 	cache := initCache(lfu)
-
-// 	cache.add("a", "1")
-// 	cache.add("b", "2")
-
-// 	cache.add("c", "3")
-
-// 	lru := &lru{}
-// 	cache.setEvictionAlgo(lru)
-
-// 	cache.add("d", "4")
-
-// 	fifo := &fifo{}
-// 	cache.setEvictionAlgo(fifo)
-
-// 	cache.add("e", "5")
-
-// }
